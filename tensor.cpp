@@ -10,17 +10,14 @@ template <class Base, class Leg>
 class Tensor{
 public:
   int rank=0;
-  int* dim=nullptr;
-  Leg* name=nullptr;
+  std::vector<int> dim;
+  std::vector<Leg> name;
   Base* data=nullptr;
 
   int size=1;
 
-  Tensor(int _rank, std::vector<int> _dim, std::vector<Leg> _name);
-  Tensor(int _rank, int* _dim, std::vector<Leg> _name);
-  Tensor(int _rank, std::vector<int> _dim, Leg* _name);
-  Tensor(int _rank, int* _dim, Leg* _name);
-  Tensor* fill(const std::vector<Base> d);
+  Tensor(int _rank, const std::vector<int>& _dim, const std::vector<Leg>& _name);
+  Tensor* fill(const std::vector<Base>& d);
   Tensor* fill(const Base* d);
 
   Tensor(const Base d);
@@ -39,11 +36,11 @@ public:
 
 template <class Base, class Leg>
 Tensor<Base,Leg> Tensor<Base,Leg>::contract(Tensor tensor1,
-                                                   Tensor tensor2,
-                                                   std::vector<Leg> leg1,
-                                                   std::vector<Leg> leg2,
-                                                   std::map<Leg,Leg> map1,
-                                                   std::map<Leg,Leg> map2){
+                                            Tensor tensor2,
+                                            std::vector<Leg> leg1,
+                                            std::vector<Leg> leg2,
+                                            std::map<Leg,Leg> map1,
+                                            std::map<Leg,Leg> map2){
 }
 
 template <class Base, class Leg>
@@ -63,7 +60,7 @@ Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const Base* d){
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const std::vector<Base> d){
+Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const std::vector<Base>& d){
   std::copy(d.begin(),d.begin()+size,data);
   return this;
 }
@@ -84,13 +81,11 @@ std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int _rank,
-       std::vector<int> _dim,
-       std::vector<Leg> _name){
+                          const std::vector<int>& _dim,
+                          const std::vector<Leg>& _name){
   rank = _rank;
-  dim = new int[rank];
-  name = new Leg[rank];
-  std::copy(_dim.begin(),_dim.end(),dim);
-  std::copy(_name.begin(),_name.end(),name);
+  dim = _dim;
+  name = _name;
   for(int i=0;i<rank;i++)size*=dim[i];
   data = (Base*)malloc(sizeof(Base)*size);
 }
@@ -98,17 +93,13 @@ Tensor<Base, Leg>::Tensor(int _rank,
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(Tensor&& t){
   rank = t.rank;
-  dim = t.dim;
-  name = t.name;
+  t.dim.swap(dim);
+  t.name.swap(name);
   data = t.data;
-  t.dim = nullptr;
-  t.name = nullptr;
   t.data = nullptr;
 }
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::~Tensor(){
-  if(dim!=nullptr) delete[] dim;
-  if(name!=nullptr) delete[] name;
   if(data!=nullptr) free(data);
 }
