@@ -16,15 +16,15 @@ public:
 
   int size=1;
 
+  Tensor();
+  Tensor(const Base d);
+  Tensor(Tensor&& t);//move
   Tensor(int _rank, const std::vector<int>& _dim, const std::vector<Leg>& _name);
+
+  ~Tensor();
+
   Tensor* fill(const std::vector<Base>& d);
   Tensor* fill(const Base* d);
-
-  Tensor(const Base d);
-
-  Tensor(Tensor&& t);//move
-  ~Tensor();
-  Tensor();
 
   static Tensor contract(Tensor tensor1,
                          Tensor tensor2,
@@ -34,15 +34,7 @@ public:
                          std::map<Leg,Leg> map2);
 };
 
-template <class Base, class Leg>
-Tensor<Base,Leg> Tensor<Base,Leg>::contract(Tensor tensor1,
-                                            Tensor tensor2,
-                                            std::vector<Leg> leg1,
-                                            std::vector<Leg> leg2,
-                                            std::map<Leg,Leg> map1,
-                                            std::map<Leg,Leg> map2){
-}
-
+// Constructor
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(){
 }
@@ -50,9 +42,36 @@ Tensor<Base, Leg>::Tensor(){
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(const Base d){
   data = new Base[1];
-  *data = d;
+  data[1] = d;
 }
 
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(Tensor&& t){
+  rank = t.rank;
+  t.dim.swap(dim);
+  t.name.swap(name);
+  data = t.data;
+  t.data = nullptr;
+}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(int _rank,
+                          const std::vector<int>& _dim,
+                          const std::vector<Leg>& _name){
+  rank = _rank;
+  dim = _dim;
+  name = _name;
+  for(int i=0;i<rank;i++)size*=dim[i];
+  data = (Base*)malloc(sizeof(Base)*size);
+}
+
+// Destructor
+template <class Base, class Leg>
+Tensor<Base, Leg>::~Tensor(){
+  if(data!=nullptr) free(data);
+}
+
+// Fill
 template <class Base, class Leg>
 Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const Base* d){
   std::copy(d,d+size,data);
@@ -65,6 +84,7 @@ Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const std::vector<Base>& d){
   return this;
 }
 
+// Print
 template <class Base, class Leg>
 std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
   os << obj.rank << " [";
@@ -79,27 +99,12 @@ std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
   return os;
 }
 
+// Contract
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(int _rank,
-                          const std::vector<int>& _dim,
-                          const std::vector<Leg>& _name){
-  rank = _rank;
-  dim = _dim;
-  name = _name;
-  for(int i=0;i<rank;i++)size*=dim[i];
-  data = (Base*)malloc(sizeof(Base)*size);
-}
-
-template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(Tensor&& t){
-  rank = t.rank;
-  t.dim.swap(dim);
-  t.name.swap(name);
-  data = t.data;
-  t.data = nullptr;
-}
-
-template <class Base, class Leg>
-Tensor<Base, Leg>::~Tensor(){
-  if(data!=nullptr) free(data);
+Tensor<Base,Leg> Tensor<Base,Leg>::contract(Tensor tensor1,
+                                            Tensor tensor2,
+                                            std::vector<Leg> leg1,
+                                            std::vector<Leg> leg2,
+                                            std::map<Leg,Leg> map1,
+                                            std::map<Leg,Leg> map2){
 }
