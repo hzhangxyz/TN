@@ -17,14 +17,18 @@ public:
   int size=1;
 
   Tensor();
-  Tensor(const Base d);
   Tensor(Tensor&& t);//move
-  Tensor(int _rank, const std::vector<int>& _dim, const std::vector<Leg>& _name);
+  Tensor(const Base d);//d1
+  Tensor(const std::vector<Base>& d, Leg n);
+  //Tensor(std::vector<Base>& d, Leg n); //vector转换到指针有点悬
+  //Tensor(const Base* d, Leg n); //cpp并不支持这种形式重载
+  Tensor(Base*& d, Leg n);//d2
+  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const std::vector<Base>& dd);
+  //Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, std::vector<Base>& dd);
+  //Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const Base* dd);
+  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, Base*& dd);//dn
 
   ~Tensor();
-
-  Tensor* fill(const std::vector<Base>& d);
-  Tensor* fill(const Base* d);
 
   static Tensor contract(Tensor tensor1,
                          Tensor tensor2,
@@ -40,48 +44,72 @@ Tensor<Base, Leg>::Tensor(){
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(const Base d){
-  data = new Base[1];
-  data[1] = d;
-}
-
-template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(Tensor&& t){
   rank = t.rank;
-  t.dim.swap(dim);
-  t.name.swap(name);
+  dim.swap(t.dim);
+  name.swap(t.name);
   data = t.data;
   t.data = nullptr;
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(int _rank,
-                          const std::vector<int>& _dim,
-                          const std::vector<Leg>& _name){
-  rank = _rank;
-  dim = _dim;
-  name = _name;
-  for(int i=0;i<rank;i++)size*=dim[i];
-  data = (Base*)malloc(sizeof(Base)*size);
+Tensor<Base, Leg>::Tensor(const Base d){
+  data = new Base[1];
+  data[1] = d;
 }
+
+#define COMMON_INIT {\
+rank = 1;\
+size = d.size;\
+dim.push_back(size);\
+name.push_back(n);}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(const std::vector<Base>& d, Leg n){
+  COMMON_INIT;
+  data = (Base*)malloc(sizeof(Base)*size);
+  std::copy(d.begin(),d.begin()+size,data);
+}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(Base*& d, Leg n){
+  COMMON_INIT;
+  data = d;
+  d = nullptr;
+}
+#undef COMMON_INIT
+
+#define COMMON_INIT {\
+rank = r;\
+dim = d;\
+name = n;\
+for(int i=0;i<rank;i++)size*=dim[i];}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(int r,
+                          const std::vector<int>& d,
+                          const std::vector<Leg>& n,
+                          const std::vector<Base>& dd){
+  COMMON_INIT;
+  data = (Base*)malloc(sizeof(Base)*size);
+  std::copy(dd.begin(),dd.begin()+size,data);
+}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(int r,
+                          const std::vector<int>& d,
+                          const std::vector<Leg>& n,
+                          Base*& dd){
+  COMMON_INIT;
+  data = dd;
+  dd = nullptr;
+}
+#undef COMMON_INIT
 
 // Destructor
 template <class Base, class Leg>
 Tensor<Base, Leg>::~Tensor(){
   if(data!=nullptr) free(data);
-}
-
-// Fill
-template <class Base, class Leg>
-Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const Base* d){
-  std::copy(d,d+size,data);
-  return this;
-}
-
-template <class Base, class Leg>
-Tensor<Base, Leg>* Tensor<Base, Leg>::fill(const std::vector<Base>& d){
-  std::copy(d.begin(),d.begin()+size,data);
-  return this;
 }
 
 // Print
@@ -93,7 +121,7 @@ std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
   }
   os << "]\n";
   for(int i=0;i<obj.size;i++){
-    os << obj.data[i] << ",";
+    os << obj.data[i] << ", ";
   }
   os << "\n";
   return os;
