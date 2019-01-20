@@ -18,24 +18,24 @@ public:
 
   Tensor();
   Tensor(Tensor&& t);//move
-  Tensor(const Base d);//d1
+  Tensor(Base d);//d1
   Tensor(const std::vector<Base>& d, Leg n);
-  //Tensor(std::vector<Base>& d, Leg n); //vector转换到指针有点悬
-  //Tensor(const Base* d, Leg n); //cpp并不支持这种形式重载
-  Tensor(Base*& d, Leg n);//d2
+  Tensor(int s, const Base*& d, Leg n);
+  Tensor(int s, Base*&& d, Leg n);//d2
   Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const std::vector<Base>& dd);
-  //Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, std::vector<Base>& dd);
-  //Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const Base* dd);
-  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, Base*& dd);//dn
+  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const Base*& dd);
+  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, Base*&& dd);//dn
 
   ~Tensor();
 
-  static Tensor contract(Tensor tensor1,
-                         Tensor tensor2,
-                         std::vector<Leg> leg1,
-                         std::vector<Leg> leg2,
-                         std::map<Leg,Leg> map1,
-                         std::map<Leg,Leg> map2);
+  static Tensor contract(const Tensor& tensor1,
+                          const Tensor& tensor2,
+                          const std::vector<Leg>& leg1,
+                          const std::vector<Leg>& leg2,
+                          const std::map<Leg,Leg>& map1,
+                          const std::map<Leg,Leg>& map2);
+  
+  static Tensor* QR(const Tensor& tensor);
 };
 
 // Constructor
@@ -53,26 +53,36 @@ Tensor<Base, Leg>::Tensor(Tensor&& t){
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(const Base d){
+Tensor<Base, Leg>::Tensor(Base d){
   data = new Base[1];
   data[1] = d;
 }
 
 #define COMMON_INIT {\
 rank = 1;\
-size = d.size;\
 dim.push_back(size);\
 name.push_back(n);}
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(const std::vector<Base>& d, Leg n){
+  size = d.size();
   COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(d.begin(),d.begin()+size,data);
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(Base*& d, Leg n){
+Tensor<Base, Leg>::Tensor(int s, const Base*& d, Leg n){
+  size = s;
+  COMMON_INIT;
+  data = (Base*)malloc(sizeof(Base)*size);
+  //auto dd = (Base*)d;
+  std::copy(d,d+size,data);
+}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(int s, Base*&& d, Leg n){
+  size = s;
   COMMON_INIT;
   data = d;
   d = nullptr;
@@ -99,7 +109,17 @@ template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int r,
                           const std::vector<int>& d,
                           const std::vector<Leg>& n,
-                          Base*& dd){
+                          const Base*& dd){
+  COMMON_INIT;
+  data = (Base*)malloc(sizeof(Base)*size);
+  std::copy(dd,dd+size,data);
+}
+
+template <class Base, class Leg>
+Tensor<Base, Leg>::Tensor(int r,
+                          const std::vector<int>& d,
+                          const std::vector<Leg>& n,
+                          Base*&& dd){
   COMMON_INIT;
   data = dd;
   dd = nullptr;
@@ -129,10 +149,12 @@ std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
 
 // Contract
 template <class Base, class Leg>
-Tensor<Base,Leg> Tensor<Base,Leg>::contract(Tensor tensor1,
-                                            Tensor tensor2,
-                                            std::vector<Leg> leg1,
-                                            std::vector<Leg> leg2,
-                                            std::map<Leg,Leg> map1,
-                                            std::map<Leg,Leg> map2){
+Tensor<Base,Leg> Tensor<Base,Leg>::contract(const Tensor& tensor1,
+                                             const Tensor& tensor2,
+                                             const std::vector<Leg>& leg1,
+                                             const std::vector<Leg>& leg2,
+                                             const std::map<Leg,Leg>& map1,
+                                             const std::map<Leg,Leg>& map2){
 }
+
+// Qr
