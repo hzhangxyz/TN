@@ -14,5 +14,7 @@ int main(){
   std::vector<int> tt {d,d+2};
   *tt.end() = 2;
   std::cout << d[1] << "\n";
+  auto p4 = new T {{1,2,3},DefaultLeg::Phy};
+  std::cout << *p4;
   return 0;
 }
