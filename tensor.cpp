@@ -100,7 +100,8 @@ name.push_back(n);}
 template <class Base, class Leg, class Idim>
 Tensor<Base, Leg, Idim>::Tensor(Idim s, const Base* const& d, Leg n){
   COMMON_INIT;
-  data = (Base*)malloc(sizeof(Base)*size);
+  //data = (Base*)malloc(sizeof(Base)*size);
+  data = new Base[size];
   std::copy(d,d+size,data);
 }
 
@@ -137,7 +138,8 @@ Tensor<Base, Leg, Idim>::Tensor(Idim r,
                           std::vector<Leg> const& n,
                           const Base* const& dd){
   COMMON_INIT;
-  data = (Base*)malloc(sizeof(Base)*size);
+  //data = (Base*)malloc(sizeof(Base)*size);
+  data = new Base[size];
   std::copy(dd,dd+size,data);
 }
 
@@ -163,10 +165,11 @@ Tensor<Base, Leg, Idim>::Tensor(Idim r,
 // Destructor
 template <class Base, class Leg, class Idim>
 Tensor<Base, Leg, Idim>::~Tensor(){
-  if(data!=nullptr) free(data);
+  //if(data!=nullptr) free(data);
+  if(data!=nullptr) delete[] data;
 }
 
-// PrIdim
+// Print
 template <class Base, class Leg, class Idim>
 std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg, Idim>& obj){
   os << "rank=" << obj.rank << " dim=[";

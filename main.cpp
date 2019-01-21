@@ -1,7 +1,7 @@
 #include <iostream>
 #include "tensor.cpp"
 
-using T=Tensor<double,DefaultLeg, unsigned long>;
+using T=Tensor<double,DefaultLeg, int>;
 
 int label(){
   static int i = 0;
@@ -57,6 +57,27 @@ int main(){
     T* e = new T[2] {{4.3}, {{3.5,7.9}, Leg::Phy}};
     print << e[0] << "\n";
     print << e[1] << "\n";
+    delete[] e;
+    double f[] = {0.5,3.7,9.0};
+    T g (3, const_ref(f), Leg::Right);
+  }
+  {/* Tensor(Idim r, std::vector<Idim> const& d, std::vector<Leg> const& n, std::vector<Base> const& dd);
+      Tensor(Idim r, std::vector<Idim> const& d, std::vector<Leg> const& n, const Base* const& dd);
+      Tensor(Idim r, std::vector<Idim> const& d, std::vector<Leg> const& n, Base*& dd);
+      Tensor(Idim r, std::vector<Idim> const& d, std::vector<Leg> const& n, Base*&& dd);*/
+    double* a = new double[6] {2,3,4,5,6,7};
+    double *const b = new double[6] {3,4,5,6,7,8};
+    auto t = new T[3] {
+                    {2, {2,3}, {Leg::Left1,Leg::Right2},{1,2,3,4,5,6}},
+                    {2, {2,3}, {Leg::Left1,Leg::Right2},a},
+                    {2, {2,3}, {Leg::Left1,Leg::Right2},b}
+                  };
+    print << t[0] << "\n";
+    print << t << "\n";
+    delete[] t;
+    print << t << "\n";
+    print << a << "\n";
+    print << b << "\n";
   }
   return 0;
 }
