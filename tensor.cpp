@@ -38,14 +38,14 @@ public:
 
   ~Tensor();
 
-  static Tensor contract(const Tensor& tensor1,
-                          const Tensor& tensor2,
-                          const std::vector<Leg>& leg1,
-                          const std::vector<Leg>& leg2,
-                          const std::map<Leg,Leg>& map1,
-                          const std::map<Leg,Leg>& map2);
+  static Tensor contract(Tensor const& tensor1,
+                         Tensor const& tensor2,
+                         std::vector<Leg> const& leg1,
+                         std::vector<Leg> const& leg2,
+                         std::map<Leg,Leg> const& map1,
+                         std::map<Leg,Leg> const& map2);
   
-  static Tensor Qr_s_Q(const Tensor& tensor);
+  static Tensor Qr_s_Q(Tensor const& tensor);
 };
 
 // Constructor
@@ -196,12 +196,12 @@ if(tmp==vec.end()){\
 }}
 
 template <class Base, class Leg>
-Tensor<Base,Leg> Tensor<Base,Leg>::contract(const Tensor& tensor1,
-                                             const Tensor& tensor2,
-                                             const std::vector<Leg>& leg1,
-                                             const std::vector<Leg>& leg2,
-                                             const std::map<Leg,Leg>& map1,
-                                             const std::map<Leg,Leg>& map2){
+Tensor<Base,Leg> Tensor<Base,Leg>::contract(Tensor const& tensor1,
+                                            Tensor const& tensor2,
+                                            std::vector<Leg> const& leg1,
+                                            std::vector<Leg> const& leg2,
+                                            std::map<Leg,Leg> const& map1,
+                                            std::map<Leg,Leg> const& map2){
   std::vector<std::pair<int,int>> order;
   std::vector<Leg> true_leg1, true_leg2;
   auto contract_length = leg1.size();
