@@ -1,4 +1,7 @@
 coverage:
-	g++ *.cpp --coverage -o a.out
+	g++ *.cpp --coverage -o a.out -g
 	./a.out
-	gcov *.cpp
+	gcov *.cpp 1>/dev/null
+
+clang:
+	clang *.cpp
