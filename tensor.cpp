@@ -9,7 +9,7 @@
 
 enum class DefaultLeg {Left, Right, Down, Up, Phy, Left1, Right1, Down1, Up1, Phy1, Left2, Right2, Down2, Up2, Phy2, Left3, Right3, Down3, Up3, Phy3, Left4, Right4, Down4, Up4, Phy4};
 
-#define const_ref(x) ((const decltype(x) &)(x))
+#define const_ref(x) ((decltype(x) const&)(x))
 // 表达式不需要const_ref, 所以这里x一定是单个变量
 
 template <class Base, class Leg>
@@ -23,18 +23,18 @@ public:
   int size=1;
 
   Tensor();
-  Tensor(const Tensor& t);//copy
+  Tensor(Tensor const& t);//copy
   Tensor(Tensor& t);//move
   Tensor(Tensor&& t);
   Tensor(Base d);//d1
-  Tensor(const std::vector<Base>& d, Leg n);// 完全和const_ref(d.begin())一样,只不过这样方便用{}初始化
-  Tensor(int s, const Base*& d, Leg n);
+  Tensor(std::vector<Base> const& d, Leg n);// 完全和const_ref(d.begin())一样,只不过这样方便用{}初始化
+  Tensor(int s, const Base* const& d, Leg n);
   Tensor(int s, Base*& d, Leg n);
   Tensor(int s, Base*&& d, Leg n);//d2
-  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const std::vector<Base>& dd);
-  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, const Base*& dd);
-  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, Base*& dd);
-  Tensor(int r, const std::vector<int>& d, const std::vector<Leg>& n, Base*&& dd);//dn
+  Tensor(int r, std::vector<int> const& d, std::vector<Leg> const& n, std::vector<Base> const& dd);
+  Tensor(int r, std::vector<int> const& d, std::vector<Leg> const& n, const Base* const& dd);
+  Tensor(int r, std::vector<int> const& d, std::vector<Leg> const& n, Base*& dd);
+  Tensor(int r, std::vector<int> const& d, std::vector<Leg> const& n, Base*&& dd);//dn
 
   ~Tensor();
 
@@ -54,7 +54,7 @@ Tensor<Base, Leg>::Tensor(){
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(const Tensor<Base, Leg>& t){
+Tensor<Base, Leg>::Tensor(Tensor<Base, Leg> const& t){
   rank = t.rank;
   dim = t.dim;
   name = t.name;
@@ -85,12 +85,12 @@ Tensor<Base, Leg>::Tensor(Base d){
 }
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(const std::vector<Base>& d, Leg n){
+Tensor<Base, Leg>::Tensor(std::vector<Base> const& d, Leg n){
   /*size = d.size();
   COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(&d.front(),&d.front()+size,data);*/
-  new (this) Tensor(d.size(), (Base*)d.data(),n);
+  new (this) Tensor(d.size(), const_ref(d.data()),n);
 }
 
 #define COMMON_INIT {\
@@ -100,7 +100,7 @@ dim.push_back(size);\
 name.push_back(n);}
 
 template <class Base, class Leg>
-Tensor<Base, Leg>::Tensor(int s, const Base*& d, Leg n){
+Tensor<Base, Leg>::Tensor(int s, const Base* const& d, Leg n){
   COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(d,d+size,data);
@@ -121,13 +121,13 @@ Tensor<Base, Leg>::Tensor(int s, Base*&& d, Leg n){
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int r,
-                          const std::vector<int>& d,
-                          const std::vector<Leg>& n,
-                          const std::vector<Base>& dd){
+                          std::vector<int> const& d,
+                          std::vector<Leg> const& n,
+                          std::vector<Base> const& dd){
   /*COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(&dd.front(),&dd.front()+size,data);*/
-  new (this) Tensor(r, d, n, (Base*)dd.data());
+  new (this) Tensor(r, d, n, const_ref(dd.data()));
 }
 
 #define COMMON_INIT {\
@@ -138,9 +138,9 @@ for(int i=0;i<rank;i++)size*=dim[i];}
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int r,
-                          const std::vector<int>& d,
-                          const std::vector<Leg>& n,
-                          const Base*& dd){
+                          std::vector<int> const& d,
+                          std::vector<Leg> const& n,
+                          const Base* const& dd){
   COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(dd,dd+size,data);
@@ -148,8 +148,8 @@ Tensor<Base, Leg>::Tensor(int r,
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int r,
-                          const std::vector<int>& d,
-                          const std::vector<Leg>& n,
+                          std::vector<int> const& d,
+                          std::vector<Leg> const& n,
                           Base*& dd){
   COMMON_INIT;
   data = dd;
@@ -159,8 +159,8 @@ Tensor<Base, Leg>::Tensor(int r,
 
 template <class Base, class Leg>
 Tensor<Base, Leg>::Tensor(int r,
-                          const std::vector<int>& d,
-                          const std::vector<Leg>& n,
+                          std::vector<int> const& d,
+                          std::vector<Leg> const& n,
                           Base*&& dd){
   new (this) Tensor(r, d, n, dd);
 }
