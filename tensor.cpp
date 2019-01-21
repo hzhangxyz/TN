@@ -90,7 +90,7 @@ Tensor<Base, Leg>::Tensor(const std::vector<Base>& d, Leg n){
   COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(&d.front(),&d.front()+size,data);*/
-  new (this) Tensor(d.size(), (Base*)&d.front(),n);
+  new (this) Tensor(d.size(), (Base*)d.data(),n);
 }
 
 #define COMMON_INIT {\
@@ -127,7 +127,7 @@ Tensor<Base, Leg>::Tensor(int r,
   /*COMMON_INIT;
   data = (Base*)malloc(sizeof(Base)*size);
   std::copy(&dd.front(),&dd.front()+size,data);*/
-  new (this) Tensor(r, d, n, (Base*)&dd.front());
+  new (this) Tensor(r, d, n, (Base*)dd.data());
 }
 
 #define COMMON_INIT {\
@@ -187,6 +187,14 @@ std::ostream& operator<<(std::ostream& os, const Tensor<Base, Leg>& obj){
 }
 
 // Contract
+#define get_index(it,vec,tmp, res) {\
+auto tmp = std::find(vec.begin(), vec.end(), it);\
+if(tmp==vec.end()){\
+  res = -1;\
+}else{\
+  res = std::distance(vec.begin(),tmp);\
+}}
+
 template <class Base, class Leg>
 Tensor<Base,Leg> Tensor<Base,Leg>::contract(const Tensor& tensor1,
                                              const Tensor& tensor2,
@@ -194,6 +202,28 @@ Tensor<Base,Leg> Tensor<Base,Leg>::contract(const Tensor& tensor1,
                                              const std::vector<Leg>& leg2,
                                              const std::map<Leg,Leg>& map1,
                                              const std::map<Leg,Leg>& map2){
+  std::vector<std::pair<int,int>> order;
+  std::vector<Leg> true_leg1, true_leg2;
+  auto contract_length = leg1.size();
+  int res_rank = tensor1.rank + tensor2.rank;
+  for(auto i=0;i<contract_length;i++){
+    int index1, index2;
+    get_index(leg1[i], tensor1.name, l1, index1);
+    if(index1==-1)continue;
+    get_index(leg2[i], tensor2.name, l2, index2);
+    if(index2==-1)continue;
+    order.push_back({index1, index2});
+    true_leg1.push_back(leg1[i]);
+    true_leg2.push_back(leg2[i]);
+    res_rank -= 2;
+  }
+  std::vector<int> res_dim;
+  std::vector<Leg> res_name;
+  for(auto i=0;i<tensor1.rank;i++){
+
+  }
 }
+
+#undef get_index
 
 // Qr
